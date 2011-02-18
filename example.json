@@ -1,0 +1,11 @@
+{
+  "query": "SELECT count,firstName,lastName,email FROM users",
+  "doc": {
+    "name": {
+      "first": "firstName",
+      "last": "lastName"
+    },
+    "count": "count",
+    "email": "email"
+  }
+}
