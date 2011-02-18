@@ -1,9 +1,11 @@
 sql2couchdb
 ===========
 
-At the moment this project is a proof of concept, but should quickly develop
-into a usable application. Even as a proof of concept it is useful, though
-buggy and at times slow.
+Version: PROOF OF CONCEPT 
+
+At the moment this project is a proof of concept, meaning it has poor code
+design, no architectural thought, a lot of duct tape and hacks, but still
+functions. The eventual program will look little like it does now.
 
 The idea is that you feed it a JSON object that has an SQL SELECT statement and
 the JSON that you want your documents to look like. The values of your
