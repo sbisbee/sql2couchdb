@@ -49,7 +49,6 @@ function castSQLToPHP($mysqlType, $value)
   switch($mysqlType)
   {
     case 'int':         $value = (int) $value; break;
-    case 'tinyint':     $value = (int) $value; break;
     case 'smallint':    $value = (int) $value; break;
     case 'mediumint':   $value = (int) $value; break;
     case 'bigint':      $value = (int) $value; break;
@@ -61,6 +60,7 @@ function castSQLToPHP($mysqlType, $value)
 
     case 'bool':        $value = (bool) $value; break;
     case 'boolean':     $value = (bool) $value; break;
+    case 'tinyint':     $value = (bool) $value; break;
   }
 
   return $value;
