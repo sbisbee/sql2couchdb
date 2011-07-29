@@ -1,11 +1,24 @@
 {
+  // Creates one doc per result row.
   "query": "SELECT count,firstName,lastName,email FROM users",
+
+  // Can be used as arrays.
+  "sub-queries": {
+    "second": "SELECT something, else FROM elsewhere"
+  },
+
   "doc": {
     "name": {
-      "first": "firstName",
-      "last": "lastName"
+      "first": "!first.firstName",
+      "last": "!first.lastName"
     },
-    "count": "count",
-    "email": "email"
+    "bunchOfRows": {
+      "!second": {
+          "!second.else": "!second.something",
+          "foo": "!first.lastName"
+      }
+    },
+    "count": "!first.count",
+    "email": "!first.email"
   }
 }
