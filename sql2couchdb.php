@@ -209,10 +209,20 @@ if(!($mysqlQuery = mysql_query($jsonFile->query, $mysqlCon)))
 
 $docsToSend = array();
 
-while($row = mysql_fetch_array($mysqlQuery, MYSQL_ASSOC))
+$c = 0;
+while($row = mysql_fetch_array($mysqlQuery, MYSQL_ASSOC))  {
   $docsToSend[] = map($row, clone $jsonFile->doc, $mysqlQuery);
+  $c++;
+  if ($c === 1001) {
+    $sag->bulk($docsToSend);
+    $docsToSend = array();
+    $c = 0;
+  }
+}
 
-$sag->bulk($docsToSend);
+if (count($docsToSend) > 0) {
+  $sag->bulk($docsToSend);
+}
 
 mysql_free_result($mysqlQuery);
 mysql_close($mysqlCon);
