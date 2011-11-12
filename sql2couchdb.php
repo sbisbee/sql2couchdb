@@ -69,6 +69,8 @@ function castSQLToPHP($mysqlType, $value)
 
 function map($row, $json, $mysqlQuery)
 {
+  $wasObject = false;
+
   if($json)
   {
     //turn objects into associative arrays
