@@ -61,6 +61,7 @@ function castSQLToPHP($mysqlType, $value)
     case 'bool':        $value = (bool) $value; break;
     case 'boolean':     $value = (bool) $value; break;
     case 'tinyint':     $value = (bool) $value; break;
+    default:            $value = utf8_encode($value); break;
   }
 
   return $value;
