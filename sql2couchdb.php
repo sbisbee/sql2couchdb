@@ -84,7 +84,14 @@ function map($row, $json, $mysqlQuery)
     {
       foreach($json as $k => $v)
       {
-        $json[$k] = map($row, $v, $mysqlQuery);
+        $v = map($row, $v, $mysqlQuery);
+        if ($v === null)
+        {
+          unset($json[$k]);
+          continue;
+        } else {
+          $json[$k] = $v;
+        }
 
         if($k == '_id')
           $json[$k] = (string) $json[$k];
@@ -93,6 +100,8 @@ function map($row, $json, $mysqlQuery)
     elseif(is_string($json))
       if($row[$json])
         return castSQLToPHP(getColType($json, $mysqlQuery), $row[$json]);
+      else
+        return null;
 
     if($wasObject)
       $json = (object) $json;
