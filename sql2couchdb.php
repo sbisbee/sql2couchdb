@@ -123,7 +123,8 @@ $options = getopt(null,
                     "couchdb-pass:",
                     "couchdb-db:",
                     "couchdb-host:",
-                    "couchdb-port:"
+                    "couchdb-port:",
+                    "dump-here:"
                   )
 );
 
@@ -136,6 +137,8 @@ $mysqlConfig->port = '3306';
 $couchdbConfig = new StdClass();
 $couchdbConfig->host = '127.0.0.1';
 $couchdbConfig->port = '5984';
+
+$dumpDir = false;
 
 foreach($options as $opt => $value)
 {
@@ -180,6 +183,10 @@ foreach($options as $opt => $value)
     case 'couchdb-port':
       $couchdbConfig->port = $value;
       break;
+
+    case 'dump-here':
+      $dumpDir = $value;
+      break;
   }
 }
 
@@ -196,16 +203,18 @@ if(!$jsonFile->query || !is_string($jsonFile->query))
 if(!$jsonFile->doc || !is_object($jsonFile->doc))
   throw new Exception('Missing the doc.');
 
-// Set up Sag now so that we don't run the whole MySQL loop and then end up
-// with an error.
+if(!$dumpDir) {
+	// Set up Sag now so that we don't run the whole MySQL loop and then end up
+	// with an error.
 
-$sag = new Sag($couchdbConfig->host, $couchdbConfig->port);
-$sag->setDatabase($couchdbConfig->db);
+	$sag = new Sag($couchdbConfig->host, $couchdbConfig->port);
+	$sag->setDatabase($couchdbConfig->db);
 
-if($couchdbConfig->user || $couchdbConfig->pass)
-  $sag->login($couchdbConfig->user, $couchdbConfig->pass);
+	if($couchdbConfig->user || $couchdbConfig->pass)
+	  $sag->login($couchdbConfig->user, $couchdbConfig->pass);
+}
 
-// Get data from MySQL and send it to CouchDB.
+// Get data from MySQL and send it to CouchDB or the $dumpDir
 
 if(!($mysqlCon = mysql_connect("{$mysqlConfig->host}:{$mysqlConfig->port}", $mysqlConfig->user, $mysqlConfig->pass)))
   throw new Exception('Unable to connect to MySQL: '.mysql_error());
@@ -216,21 +225,30 @@ if(!mysql_select_db($mysqlConfig->db, $mysqlCon))
 if(!($mysqlQuery = mysql_query($jsonFile->query, $mysqlCon)))
   throw new Exception('Invalid query: '.mysql_error());
 
-$docsToSend = array();
+if(!$dumpDir) {
+	$docsToSend = array();
 
-$c = 0;
-while($row = mysql_fetch_array($mysqlQuery, MYSQL_ASSOC))  {
-  $docsToSend[] = map($row, clone $jsonFile->doc, $mysqlQuery);
-  $c++;
-  if ($c === 1001) {
-    $sag->bulk($docsToSend);
-    $docsToSend = array();
-    $c = 0;
-  }
-}
+	$c = 0;
+	while($row = mysql_fetch_array($mysqlQuery, MYSQL_ASSOC))  {
+	  $docsToSend[] = map($row, clone $jsonFile->doc, $mysqlQuery);
+	  $c++;
+	  if ($c === 1001) {
+	    $sag->bulk($docsToSend);
+	    $docsToSend = array();
+	    $c = 0;
+	  }
+	}
 
-if (count($docsToSend) > 0) {
-  $sag->bulk($docsToSend);
+	if (count($docsToSend) > 0) {
+	  $sag->bulk($docsToSend);
+	}
+} else {
+	if(!file_exists($dumpDir))
+		mkdir($dumpDir);
+	while($row = mysql_fetch_array($mysqlQuery, MYSQL_ASSOC))  {
+		$doc = map($row, clone $jsonFile->doc, $mysqlQuery);
+		file_put_contents($dumpDir . '/' . str_replace('/', '', utf8_decode($doc->_id)) . '.json', json_encode($doc));
+	}
 }
 
 mysql_free_result($mysqlQuery);
